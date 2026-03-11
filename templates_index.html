@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🧠 Brainiac Scanner - Cloud Edition</title>
+    <style>
+        :root {
+            --bg-primary: #0a0a1a;
+            --bg-secondary: #1a1a2e;
+            --accent-green: #00ff88;
+            --accent-red: #ff4444;
+            --text-primary: #ffffff;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Consolas', monospace;
+            overflow-x: hidden;
+        }
+        .header {
+            background: linear-gradient(90deg, var(--bg-primary), var(--bg-secondary));
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 2px solid var(--accent-green);
+        }
+        .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+        .scan-panel {
+            background: var(--bg-secondary);
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            border: 1px solid var(--accent-green);
+        }
+        textarea {
+            width: 100%; height: 150px;
+            background: #0f0f1f;
+            color: var(--text-primary);
+            border: 1px solid var(--accent-green);
+            border-radius: 5px;
+            padding: 1rem;
+            font-family: 'Consolas', monospace;
+            font-size: 14px;
+        }
+        button {
+            background: var(--accent-green);
+            color: black;
+            border: none;
+            padding: 1rem 2rem;
+            font-family: 'Consolas', bold;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 0.5rem;
+            transition: all 0.3s;
+        }
+        button:hover { background: #00cc66; transform: scale(1.05); }
+        .results {
+            background: var(--bg-secondary);
+            padding: 2rem;
+            border-radius: 10px;
+            height: 500px;
+            overflow-y: auto;
+            border: 1px solid var(--accent-green);
+        }
+        .progress { width: 100%; height: 10px; background: #0f0f1f; border-radius: 5px; overflow: hidden; }
+        .progress-bar { height: 100%; background: var(--accent-green); width: 0%; transition: width 0.3s; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🧠 BRAINIAC v12.0 - Cloud Scanner</h1>
+        <p>Shrinking Worlds • Collecting Vulnerabilities • Enterprise Dominance</p>
+    </div>
+    
+    <div class="container">
+        <div class="scan-panel">
+            <h2>TARGET SYSTEMS</h2>
+            <textarea id="targets" placeholder="192.168.1.0/24&#10;10.0.0.1-254&#10;scanme.nmap.org">scanme.nmap.org</textarea>
+            
+            <div style="margin-top: 1rem;">
+                <button onclick="scan('quick')">QUICK SCAN</button>
+                <button onclick="scan('standard')">STANDARD SCAN</button>
+                <button onclick="scan('intense')">INTENSE SCAN</button>
+                <button onclick="scan('brutal')">BRUTAL SCAN</button>
+            </div>
+            
+            <div class="progress" id="progress" style="margin-top: 1rem; display: none;">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+        </div>
+        
+        <div class="results" id="results">
+            <h3>SCAN OUTPUT</h3>
+            <pre id="output">Ready to shrink worlds...</pre>
+        </div>
+    </div>
+
+    <script>
+        let currentJob = null;
+        
+        async function scan(type) {
+            const targets = document.getElementById('targets').value;
+            const progress = document.getElementById('progress');
+            const output = document.getElementById('output');
+            
+            progress.style.display = 'block';
+            output.textContent = '🚀 Initiating scan...';
+            
+            const response = await fetch('/api/scan', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({targets, scan_type: type})
+            });
+            
+            const data = await response.json();
+            currentJob = data.job_id;
+            
+            pollResults();
+        }
+        
+        async function pollResults() {
+            if (!currentJob) return;
+            
+            const response = await fetch(`/api/results/${currentJob}`);
+            const data = await response.json();
+            
+            if (data.status === 'running') {
+                document.getElementById('progress-bar').style.width = data.progress + '%';
+                document.getElementById('output').textContent = data.output.slice(-10).join('\n');
+                setTimeout(pollResults, 1000);
+            } else {
+                document.getElementById('progress').style.display = 'none';
+                document.getElementById('output').textContent = data.output.join('\n');
+                if (data.status === 'error') {
+                    document.getElementById('output').textContent += `\n❌ Error: ${data.error}`;
+                }
+            }
+        }
+    </script>
+</body>
+</html>
