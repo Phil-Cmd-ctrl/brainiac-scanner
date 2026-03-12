@@ -113,28 +113,3 @@ def results():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)
-<!-- Add to <head> -->
-<link rel="preload" href="data:image/svg+xml;base64,[brainiac-svg-base64]" as="image">
-
-<!-- Brainiac Hero Section (above scan form) -->
-<div class="brainiac-hero">
-  <img src="data:{{brainiac_svg}}" alt="Brainiac" class="brainiac-logo" loading="lazy">
-  <h1>BRAINIAC v12.0</h1>
-  <p>Enterprise Nmap Vulnerability Scanner</p>
-</div>
-
-<style>
-.brainiac-hero {
-  text-align: center;
-  padding: 2rem 1rem;
-  background: linear-gradient(135deg, #0a0a1f 0%, #1a0033 100%);
-  border-radius: 12px;
-  margin-bottom: 2rem;
-}
-.brainiac-logo {
-  width: 120px; height: 120px;
-  filter: drop-shadow(0 0 20px #00ff88);
-  animation: pulse 2s infinite;
-}
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.7} }
-</style>
