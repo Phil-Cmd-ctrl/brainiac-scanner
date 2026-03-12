@@ -1,24 +1,19 @@
 FROM python:3.11-slim
 
-# Install nmap + curl + procps (for ps/top)
+# Full nmap install + security tools
 RUN apt-get update && apt-get install -y \
     nmap \
     curl \
-    procps \
+    netcat-openbsd \
     && rm -rf /var/lib/apt/lists/*
 
-# Create non-root user
-RUN useradd -m -u 1000 appuser
 WORKDIR /app
 COPY . .
 RUN pip install --no-cache-dir -r requirements.txt
-RUN chown -R appuser:appuser /app
 
-# Switch to non-root
-USER appuser
+# Nmap config: disable raw sockets where possible, enable IPv4
+RUN echo "target_ipv4_wait_times=1000" > /root/.nmap/nmap.conf \
+    && echo "target_ipv6_wait_times=1000" >> /root/.nmap/nmap.conf
 
-# Expose port
 EXPOSE 5000
-
-# Capabilities: RAW sockets + bind privileged ports
-ENTRYPOINT ["gunicorn", "--bind", "0.0.0.0:5000", "--worker-tmp-dir", "/dev/shm", "app:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers=1", "--threads=4", "app:app"]
