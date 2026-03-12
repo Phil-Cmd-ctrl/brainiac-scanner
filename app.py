@@ -116,21 +116,24 @@ def index():
     return Response(html, mimetype='text/html')
 
 @app.route('/api/scan', methods=['POST'])
-def api_scan():
-    try:
-        data = request.get_json() or {}
-        targets = data.get('targets', '').strip()
-        scan_type = data.get('scan_type', 'fast')
-        
-        if not targets:
-            return jsonify({'error': 'No targets provided'}), 400
-        
-        job_id = f"job_{int(time.time())}"
-        scan_jobs[job_id] = {
-            'status': 'running',
-            'output': [f'Starting nmap {scan_type} scan: {targets}'],
-            'progress': 10,
-            'targets': targets
+def scan():
+    data = request.json
+    target = data['target']
+    profile = data['profile']
+    
+    # Render.com compatible: TCP connect + unprivileged
+    base_flags = ['--unprivileged', '-T4', '-Pn']  # No raw sockets, skip host discovery
+    
+    if profile == 'quick':
+        cmd = ['nmap'] + base_flags + ['-F', target]
+    elif profile == 'standard':
+        cmd = ['nmap'] + base_flags + ['-sV', '--top-ports', '1000', target]
+    elif profile == 'full':
+        cmd = ['nmap'] + base_flags + ['-sV', '-O', '-A', target]
+    elif profile == 'brutal':
+        cmd = ['nmap'] + base_flags + ['-sV', '-O', '-A', '--script=vuln', target]
+    
+    # Rest of function unchanged...
         }
         
         def run_nmap():
