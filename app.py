@@ -88,7 +88,9 @@ def scan():
     elif profile == 'full':
         cmd = ['nmap', '--unprivileged', '-T4', '-Pn', '-sV', '-A', target]
     else:  # brutal
-        cmd = ['nmap', '--unprivileged', '-T4', '-Pn', '-sV', '--script=vuln', target]
+        cmd = ['nmap', '--unprivileged -Pn -sV --script=vulners,http-vuln*,realvnc* --max-parallelism 50 --min-rate 1000', target]
+        # Vulners-only (lightweight, covers 200k CVEs):
+"Brutal": "nmap -Pn -sV --script=vulners --script-args mincv=7.0"
     
     scan_results[target] = {'output': '', 'complete': False, 'profile': profile}
     current_scan = subprocess.Popen(
