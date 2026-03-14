@@ -1,10 +1,27 @@
 from flask import Flask, request, jsonify, Response
 import subprocess
 import json
+import resource
 import threading
 import time
 from collections import defaultdict
+# Memory limit: 500MB soft/hard cap (prevents OOM)
+resource.setrlimit(resource.RLIMIT_AS, (500*1024*1024, 500*1024*1024))
 
+# Global scan limiter (max 1 concurrent Brutal)
+scan_limiter = threading.Semaphore(1)  # 0=unlimited, 1=max 1 scan
+
+# In your scan route (before subprocess.call):
+@app.route('/api/scan', methods=['POST'])
+def scan():
+    if not scan_limiter.acquire(blocking=False):
+        return jsonify({"error": "Scan in progress - try Quick profile"}), 429
+    
+    try:
+        # Your existing nmap code...
+        result = subprocess.run(nmap_cmd, ...)
+    finally:
+        scan_limiter.release()
 app = Flask(__name__)
 
 # Global scan state
